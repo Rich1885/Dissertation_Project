@@ -29,9 +29,7 @@ function Header() {
           <img src={Eth} alt="eth" className="eth" />
           ETH
         </div>
-        <div className="connectButton">
-          Connect Wallet
-        </div>
+        <appkit-button />
       </div>
     </header>
   );
