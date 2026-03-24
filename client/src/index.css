@@ -1,0 +1,171 @@
+/* ============================================
+   SentinelDEX — Global Styles & Ant Design Overrides
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* --- CSS Variables (Design Tokens) --- */
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #0f1629;
+  --bg-card: #111637;
+  --bg-input: #161b3a;
+  --bg-elevated: #1a2044;
+  --border-subtle: #1e2650;
+  --border-medium: #2a3362;
+  --border-bright: #3d4880;
+  --text-primary: #ffffff;
+  --text-secondary: #8a8fb5;
+  --text-muted: #5a5f82;
+  --accent-purple: #7c3aed;
+  --accent-purple-hover: #6d28d9;
+  --accent-purple-glow: rgba(124, 58, 237, 0.25);
+  --accent-blue: #5981F3;
+  --risk-green: #22c55e;
+  --risk-amber: #f59e0b;
+  --risk-red: #ef4444;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 100px;
+  --font-primary: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* --- Reset & Base --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg-primary);
+  background: linear-gradient(
+    180deg,
+    var(--bg-primary) 0%,
+    #070815 100%
+  );
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+code {
+  font-family: var(--font-mono);
+}
+
+/* ============================================
+   Ant Design Overrides
+   ============================================ */
+
+/* --- Input --- */
+.ant-input {
+  background-color: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  height: 96px !important;
+  margin-bottom: 5px;
+  font-size: 32px;
+  font-family: var(--font-primary) !important;
+  font-weight: 600;
+  border-radius: var(--radius-lg) !important;
+  transition: border-color 0.2s ease;
+}
+
+.ant-input:focus,
+.ant-input:hover {
+  border-color: var(--border-medium) !important;
+}
+
+.ant-input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* --- Popover (Settings) --- */
+.ant-popover-arrow {
+  visibility: hidden;
+}
+
+.ant-popover-title {
+  color: var(--text-primary) !important;
+  font-family: var(--font-primary) !important;
+  font-weight: 600;
+}
+
+.ant-popover-inner-content {
+  color: var(--text-primary) !important;
+}
+
+.ant-popover-inner {
+  min-width: 260px !important;
+  min-height: 140px !important;
+  border: 1px solid var(--border-medium);
+  background-color: var(--bg-card) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+/* --- Radio Buttons (Slippage) --- */
+.ant-radio-group {
+  margin-top: 10px;
+}
+
+.ant-radio-button-wrapper {
+  background-color: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  font-weight: 500;
+  font-family: var(--font-primary) !important;
+  border-color: var(--border-medium) !important;
+}
+
+.ant-radio-button-wrapper-checked {
+  border-color: var(--accent-purple) !important;
+  background-color: rgba(124, 58, 237, 0.15) !important;
+  color: var(--accent-purple) !important;
+}
+
+.ant-radio-button-wrapper-checked::before {
+  background-color: var(--accent-purple) !important;
+}
+
+/* --- Modal (Token Select) --- */
+.ant-modal-content {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  padding: 0px !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+.ant-modal {
+  border: 1px solid var(--border-medium);
+  width: 420px !important;
+  border-radius: var(--radius-lg);
+}
+
+.ant-modal-header {
+  background-color: var(--bg-card) !important;
+  border-bottom: none !important;
+}
+
+.ant-modal-title {
+  color: var(--text-primary) !important;
+  font-family: var(--font-primary) !important;
+  font-weight: 600;
+  padding-top: 17px !important;
+  margin-left: 20px !important;
+}
+
+.ant-modal-close-icon {
+  color: var(--text-muted) !important;
+  transition: 0.3s;
+}
+
+.ant-modal-close-icon:hover {
+  color: var(--text-primary) !important;
+}

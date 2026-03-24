@@ -1,0 +1,857 @@
+/* ============================================
+   SentinelDEX — Component Styles
+   ============================================ */
+
+.App {
+  text-align: center;
+}
+
+/* ============================================
+   Header / Navigation
+   ============================================ */
+
+header {
+  height: 64px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(10, 14, 26, 0.85);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.leftH {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brandName {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  margin-right: 8px;
+}
+
+.navSeparator {
+  color: var(--text-muted);
+  font-size: 14px;
+  user-select: none;
+}
+
+.rightH {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerItem {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+.headerItem:hover {
+  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.headerItem.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ethBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.eth {
+  width: 16px;
+  height: 16px;
+}
+
+.connectButton {
+  background: var(--accent-purple);
+  padding: 8px 22px;
+  border-radius: var(--radius-pill);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-primary);
+}
+
+.connectButton:hover {
+  background: var(--accent-purple-hover);
+  box-shadow: 0 0 20px var(--accent-purple-glow);
+}
+
+.link {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ============================================
+   Main Layout
+   ============================================ */
+
+.mainWindow {
+  margin-top: 50px;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+/* ============================================
+   Swap / Trade Box
+   ============================================ */
+
+.tradeBox {
+  width: 460px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  min-height: 300px;
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 24px 28px;
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
+}
+
+.tradeBoxHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.tradeBoxHeader h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cog {
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.cog:hover {
+  color: var(--text-primary);
+  rotate: 90deg;
+  cursor: pointer;
+}
+
+/* --- Inputs --- */
+.inputs {
+  position: relative;
+  width: 100%;
+}
+
+.switchButton {
+  background-color: var(--bg-elevated);
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  border-radius: var(--radius-sm);
+  position: absolute;
+  top: 86px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--text-muted);
+  border: 3px solid var(--bg-card);
+  font-size: 12px;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.switchButton:hover {
+  color: var(--text-primary);
+  background-color: var(--border-medium);
+  cursor: pointer;
+}
+
+.dollarAmount {
+  position: absolute;
+  top: 75px;
+  left: 14px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* --- Asset Selectors --- */
+.assetOne {
+  position: absolute;
+  min-width: 50px;
+  height: 32px;
+  background-color: var(--bg-elevated);
+  top: 32px;
+  right: 14px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  font-size: 15px;
+  padding-right: 10px;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.2s ease;
+}
+
+.assetTwo {
+  position: absolute;
+  min-width: 50px;
+  height: 32px;
+  background-color: var(--bg-elevated);
+  top: 131px;
+  right: 14px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  font-size: 15px;
+  padding-right: 10px;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.2s ease;
+}
+
+.assetOne:hover,
+.assetTwo:hover {
+  cursor: pointer;
+  border-color: var(--border-bright);
+  background-color: var(--border-medium);
+}
+
+.assetLogo {
+  height: 22px;
+  margin-left: 7px;
+}
+
+/* --- Swap Button --- */
+.swapButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--accent-purple);
+  width: 100%;
+  height: 52px;
+  font-size: 16px;
+  border-radius: var(--radius-md);
+  color: white;
+  font-weight: 700;
+  font-family: var(--font-primary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.swapButton:hover {
+  background: var(--accent-purple-hover);
+  box-shadow: 0 0 24px var(--accent-purple-glow);
+}
+
+.swapButton[disabled] {
+  background: var(--bg-elevated);
+  opacity: 0.5;
+  color: var(--text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.swapButton[disabled]:hover {
+  background: var(--bg-elevated);
+  box-shadow: none;
+}
+
+/* ============================================
+   Token Risk Summary Panel
+   ============================================ */
+
+.riskPanel {
+  width: 460px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  margin-top: 16px;
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
+}
+
+.riskPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.riskPanelTitle {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--accent-purple);
+}
+
+.riskPanelStatus {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.riskPanelStatus.safe {
+  color: var(--risk-green);
+}
+
+.riskPanelStatus.caution {
+  color: var(--risk-amber);
+}
+
+.riskPanelStatus.danger {
+  color: var(--risk-red);
+}
+
+/* --- Token Stats Grid --- */
+.riskStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.riskStatItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.riskStatLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.riskStatValue {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+/* --- Heuristic Indicators --- */
+.riskIndicatorsTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.riskIndicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(30, 38, 80, 0.5);
+}
+
+.riskIndicator:last-child {
+  border-bottom: none;
+}
+
+.riskIndicatorLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.riskDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.riskDot.green { background-color: var(--risk-green); }
+.riskDot.amber { background-color: var(--risk-amber); }
+.riskDot.red { background-color: var(--risk-red); }
+
+.riskIndicatorName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.riskIndicatorRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.riskIndicatorDetail {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* --- Risk Badges --- */
+.riskBadge {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.riskBadge.noFlag {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--risk-green);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.riskBadge.caution {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--risk-amber);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.riskBadge.highRisk {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--risk-red);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* --- View Full Analysis Link --- */
+.riskPanelFooter {
+  text-align: center;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.riskPanelFooter a {
+  color: var(--accent-purple);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.riskPanelFooter a:hover {
+  color: var(--accent-blue);
+}
+
+.riskDisclaimer {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 12px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ============================================
+   Token Selection Modal
+   ============================================ */
+
+.modalContent {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tokenChoice {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 12px 24px;
+  transition: background 0.15s ease;
+}
+
+.tokenChoice:hover {
+  cursor: pointer;
+  background-color: var(--bg-elevated);
+}
+
+.tokenLogo {
+  height: 36px;
+  width: 36px;
+  border-radius: 50%;
+}
+
+.tokenChoiceNames {
+  display: flex;
+  flex-direction: column;
+}
+
+.tokenName {
+  margin-left: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.tokenTicker {
+  margin-left: 12px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* ============================================
+   Tracked Tokens Page
+   ============================================ */
+
+.trackedTokensPage {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: left;
+}
+
+.trackedTokensPage h2 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.trackedTokensDisclaimer {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+.tokenCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px 24px;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.tokenCard:hover {
+  border-color: var(--border-medium);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tokenCardLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tokenCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tokenCardName {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.tokenCardSummary {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.tokenCardArrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.tokenCard:hover .tokenCardArrow {
+  border-color: var(--accent-purple);
+  color: var(--accent-purple);
+}
+
+/* ============================================
+   Landing Page
+   ============================================ */
+
+.landingPage {
+  min-height: 100vh;
+}
+
+.heroSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px 60px;
+  text-align: center;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+
+.heroTitle {
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 20px;
+  max-width: 700px;
+}
+
+.heroTitle span {
+  color: var(--accent-purple);
+}
+
+.heroSubtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 0 36px;
+}
+
+.heroCTAs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.btnOutline {
+  padding: 12px 28px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-bright);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnOutline:hover {
+  border-color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btnPrimary {
+  padding: 12px 28px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--accent-purple);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnPrimary:hover {
+  background: var(--accent-purple-hover);
+  box-shadow: 0 0 24px var(--accent-purple-glow);
+}
+
+.heroDisclaimer {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 460px;
+  line-height: 1.5;
+}
+
+/* --- Features Section --- */
+.featuresSection {
+  padding: 60px 40px 80px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.featuresSection h3 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.featuresIntro {
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 600px;
+  margin: 0 auto 40px;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.featureCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.featureCard:hover {
+  border-color: var(--border-medium);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+.featureIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(124, 58, 237, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  color: var(--accent-purple);
+  font-size: 18px;
+}
+
+.featureCard h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.featureCard p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* --- Landing Footer --- */
+.landingFooter {
+  padding: 30px 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.landingFooter .brandName {
+  font-size: 14px;
+}
+
+.landingFooter .footerDisclaimer {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 450px;
+  text-align: right;
+  line-height: 1.5;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+  header {
+    padding: 0 20px;
+  }
+
+  .heroTitle {
+    font-size: 34px;
+  }
+
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tradeBox,
+  .riskPanel {
+    width: 100%;
+    max-width: 460px;
+  }
+
+  .landingFooter {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
+
+.tokenDetailPanel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: 20px 24px;
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
+.tokenCard.expanded {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  margin-bottom: 0;
+}
