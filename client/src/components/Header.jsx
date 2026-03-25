@@ -27,7 +27,7 @@ function Header() {
       <div className="rightH">
         <div className="ethBadge">
           <img src={Eth} alt="eth" className="eth" />
-          ETH
+          Base
         </div>
         <appkit-button />
       </div>

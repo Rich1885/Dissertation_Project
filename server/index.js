@@ -17,8 +17,8 @@ app.get("/tokenPrice", async (req, res) => {
     const isOneDemo = demoAddresses.includes(query.addressOne);
     const isTwoDemo = demoAddresses.includes(query.addressTwo);
 
-    const priceOne = isOneDemo ? 0.00001 : (await Moralis.EvmApi.token.getTokenPrice({ address: query.addressOne })).raw.usdPrice;
-    const priceTwo = isTwoDemo ? 0.00001 : (await Moralis.EvmApi.token.getTokenPrice({ address: query.addressTwo })).raw.usdPrice;
+    const priceOne = isOneDemo ? 0.00001 : (await Moralis.EvmApi.token.getTokenPrice({ address: query.addressOne, chain: "0x2105" })).raw.usdPrice;
+    const priceTwo = isTwoDemo ? 0.00001 : (await Moralis.EvmApi.token.getTokenPrice({ address: query.addressTwo, chain: "0x2105" })).raw.usdPrice;
 
     const usdPrices = {
       tokenOne: priceOne,
@@ -61,20 +61,20 @@ app.get("/tokenRisk", async (req, res) => {
     // 1. Token metadata from Moralis
     const metaResponse = await Moralis.EvmApi.token.getTokenMetadata({
       addresses: [address],
-      chain: "0x1",
+      chain: "0x2105",
     });
     const meta = metaResponse.raw[0];
 
     // 2. Token price from Moralis
     const priceResponse = await Moralis.EvmApi.token.getTokenPrice({
       address: address,
-      chain: "0x1",
+      chain: "0x2105",
     });
     const price = priceResponse.raw;
 
     // 3. Market data from CoinGecko
     const cgResponse = await fetch(
-      `https://api.coingecko.com/api/v3/coins/ethereum/contract/${address}`
+      `https://api.coingecko.com/api/v3/coins/base/contract/${address}`
     );
     const cgData = await cgResponse.json();
 
@@ -159,7 +159,7 @@ app.get("/tokenRisk", async (req, res) => {
     }
 
     // --- BUILD RESPONSE ---
-    const holderCount = cgData.market_data?.total_supply ? 
+    const holderCount = cgData.market_data?.total_supply ?
       (cgData.community_data?.telegram_channel_user_count || "N/A") : "N/A";
 
     return res.status(200).json({
@@ -211,7 +211,7 @@ app.get("/tokenSummary", async (req, res) => {
     if (realAddresses.length > 0) {
       const metaResponse = await Moralis.EvmApi.token.getTokenMetadata({
         addresses: realAddresses,
-        chain: "0x1",
+        chain: "0x2105",
       });
 
       results = metaResponse.raw.map((meta) => {

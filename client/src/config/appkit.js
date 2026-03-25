@@ -1,10 +1,10 @@
 import { createAppKit } from "@reown/appkit/react";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
-import { mainnet } from "@reown/appkit/networks";
+import { base } from "@reown/appkit/networks";
 
 const projectId = "ce119a0c44111171005d9451c05a37fe";
 
-const networks = [mainnet];
+const networks = [base];
 
 const wagmiAdapter = new WagmiAdapter({
   networks,
