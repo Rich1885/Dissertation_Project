@@ -203,7 +203,6 @@ app.get("/tokenSummary", async (req, res) => {
       },
     };
 
-    // Filter out demo addresses before calling Moralis
     const realAddresses = addressList.filter((addr) => !demoSummaries[addr.toLowerCase()]);
 
     let results = [];
@@ -224,7 +223,6 @@ app.get("/tokenSummary", async (req, res) => {
           ? Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
           : null;
 
-        // Quick risk level
         let risk = "noFlag";
         let summary = "No high-risk indicators detected";
 
@@ -252,7 +250,6 @@ app.get("/tokenSummary", async (req, res) => {
       });
     }
 
-    // Append demo tokens that were requested
     addressList.forEach((addr) => {
       if (demoSummaries[addr.toLowerCase()]) {
         results.push(demoSummaries[addr.toLowerCase()]);
@@ -263,6 +260,67 @@ app.get("/tokenSummary", async (req, res) => {
   } catch (e) {
     console.error("tokenSummary error:", e.message);
     return res.status(500).json({ error: e.message });
+  }
+});
+
+app.get("/quote", async (req, res) => {
+  try {
+    const { sellToken, buyToken, sellAmount, taker } = req.query;
+
+    const params = new URLSearchParams({
+      chainId: "8453",
+      sellToken,
+      buyToken,
+      sellAmount,
+      taker,
+    });
+
+    const response = await fetch(
+      `https://api.0x.org/swap/allowance-holder/price?${params}`,
+      {
+        headers: {
+          "0x-api-key": process.env.ZEROX_KEY,
+          "0x-version": "v2",
+        },
+      }
+    );
+
+    const data = await response.json();
+    res.status(200).json(data);
+  } catch (e) {
+    console.error("quote error:", e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get("/swap", async (req, res) => {
+  try {
+    const { sellToken, buyToken, sellAmount, taker, slippageBps } = req.query;
+
+    const params = new URLSearchParams({
+      chainId: "8453",
+      sellToken,
+      buyToken,
+      sellAmount,
+      taker,
+      slippageBps,
+    });
+
+    const response = await fetch(
+      `https://api.0x.org/swap/allowance-holder/quote?${params}`,
+      {
+        headers: {
+          "0x-api-key": process.env.ZEROX_KEY,
+          "0x-version": "v2",
+        },
+      }
+    );
+
+    const data = await response.json();
+    res.status(200).json(data);
+  } catch (e) {
+    console.error("swap error:", e.message);
+    res.status(500).json({ error: e.message });
   }
 });
 

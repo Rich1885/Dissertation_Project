@@ -6,13 +6,17 @@ import {
   SettingOutlined,
 } from "@ant-design/icons";
 
-import tokenList from "../tokens.json"
-
+import tokenList from "../tokens.json";
 import axios from "axios";
-
 import RiskPanel from "./RiskPanel";
 
+import { useAccount, useSendTransaction, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { parseUnits, erc20Abi } from "viem";
+
 function Swap() {
+  const { address, isConnected } = useAccount();
+const { sendTransaction, isPending } = useSendTransaction();
+const { writeContractAsync } = useWriteContract();
 
   const [slippage, setSlippage] = useState(2.5);
   const [tokenOneAmount, setTokenOneAmount] = useState(null);
@@ -77,10 +81,8 @@ function Swap() {
 
   async function fetchPrices(one, two) {
     const res = await axios.get("http://localhost:3001/tokenPrice", {
-      params: { addressOne: one, addressTwo: two }
+      params: { addressOne: one, addressTwo: two },
     });
-
-    console.log(res.data);
     setPrices(res.data);
   }
 
@@ -96,9 +98,77 @@ function Swap() {
     }
   }
 
+async function executeSwap() {
+    if (!isConnected) {
+      message.error("Connect your wallet first");
+      return;
+    }
+    if (!tokenOneAmount) {
+      message.error("Enter an amount");
+      return;
+    }
+
+    try {
+      const sellAmount = parseUnits(
+        tokenOneAmount,
+        tokenOne.decimals
+      ).toString();
+
+      const slippageBps = Math.round(slippage * 100).toString();
+
+      const res = await axios.get("http://localhost:3001/swap", {
+        params: {
+          sellToken: tokenOne.address,
+          buyToken: tokenTwo.address,
+          sellAmount,
+          taker: address,
+          slippageBps,
+        },
+      });
+
+      const quote = res.data;
+
+      if (quote.code) {
+        message.error(quote.reason || "Quote failed");
+        return;
+      }
+
+      if (quote.issues?.allowance) {
+        message.info("Approving token spend...");
+
+        
+        await writeContractAsync({
+          address: tokenOne.address,
+          abi: erc20Abi,
+          functionName: "approve",
+          args: [
+            quote.issues.allowance.spender, 
+            BigInt(sellAmount),              
+          ],
+        });
+
+        message.success("Approved! Now swapping...");
+      }
+
+      sendTransaction({
+        to: quote.transaction.to,
+        data: quote.transaction.data,
+        value: BigInt(quote.transaction.value),
+        gas: quote.transaction.gas
+          ? BigInt(quote.transaction.gas)
+          : undefined,
+      });
+
+      message.success("Swap submitted!");
+    } catch (e) {
+      console.error("Swap failed:", e);
+      message.error("Swap failed — check console");
+    }
+  }
+
   useEffect(() => {
     fetchPrices(tokenList[0].address, tokenList[1].address);
-    fetchRisk(tokenList[1].address);  // ← add this line
+    fetchRisk(tokenList[1].address);
   }, []);
 
   const settings = (
@@ -116,7 +186,6 @@ function Swap() {
 
   return (
     <>
-
       <Modal
         open={isOpen}
         footer={null}
@@ -132,7 +201,6 @@ function Swap() {
                 onClick={() => modifyToken(i)}
               >
                 <img src={e.img} alt={e.ticker} className="tokenLogo" />
-
                 <div className="tokenChoiceNames">
                   <div className="tokenName">{e.name}</div>
                   <div className="tokenTicker">{e.ticker}</div>
@@ -143,11 +211,16 @@ function Swap() {
         </div>
       </Modal>
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
         <div className="tradeBox">
           <div className="tradeBoxHeader">
             <h4>Swap</h4>
-
             <Popover
               content={settings}
               title="Settings"
@@ -156,28 +229,49 @@ function Swap() {
             >
               <SettingOutlined className="cog" />
             </Popover>
-
           </div>
           <div className="inputs">
-            <Input placeholder="0" value={tokenOneAmount} onChange={changeAmount} disabled={!prices} />
+            <Input
+              placeholder="0"
+              value={tokenOneAmount}
+              onChange={changeAmount}
+              disabled={!prices}
+            />
             <Input placeholder="0" value={tokenTwoAmount} disabled={true} />
             <div className="switchButton" onClick={switchTokens}>
               <ArrowDownOutlined className="switchArrow" />
             </div>
             <div className="assetOne" onClick={() => openModal(1)}>
-              <img src={tokenOne.img} alt="assetOneLogo" className="assetLogo" />
+              <img
+                src={tokenOne.img}
+                alt="assetOneLogo"
+                className="assetLogo"
+              />
               {tokenOne.ticker}
               <DownOutlined />
             </div>
-
             <div className="assetTwo" onClick={() => openModal(2)}>
-              <img src={tokenTwo.img} alt="assetOneLogo" className="assetLogo" />
+              <img
+                src={tokenTwo.img}
+                alt="assetOneLogo"
+                className="assetLogo"
+              />
               {tokenTwo.ticker}
               <DownOutlined />
             </div>
           </div>
-          <div className="swapButton" disabled={!tokenOneAmount}>
-            Swap
+
+          <div
+            className={`swapButton ${
+              !tokenOneAmount || !isConnected || isPending ? "disabled" : ""
+            }`}
+            onClick={executeSwap}
+          >
+            {!isConnected
+              ? "Connect Wallet"
+              : isPending
+              ? "Swapping..."
+              : "Swap"}
           </div>
         </div>
 
