@@ -10,13 +10,13 @@ import tokenList from "../tokens.json";
 import axios from "axios";
 import RiskPanel from "./RiskPanel";
 
-import { useAccount, useSendTransaction, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { parseUnits, erc20Abi } from "viem";
+import { useAccount, useReadContract, useSendTransaction, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { parseUnits, erc20Abi, formatUnits } from "viem";
 
 function Swap() {
   const { address, isConnected } = useAccount();
-const { sendTransaction, isPending } = useSendTransaction();
-const { writeContractAsync } = useWriteContract();
+  const { sendTransaction, isPending } = useSendTransaction();
+  const { writeContractAsync } = useWriteContract();
 
   const [slippage, setSlippage] = useState(2.5);
   const [tokenOneAmount, setTokenOneAmount] = useState(null);
@@ -28,6 +28,31 @@ const { writeContractAsync } = useWriteContract();
   const [prices, setPrices] = useState(null);
   const [riskData, setRiskData] = useState(null);
 
+  // Fetch wallet balances via ERC-20 balanceOf
+  const { data: rawBalanceOne } = useReadContract({
+    address: tokenOne.address,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [address],
+    query: { enabled: isConnected && !!address },
+  });
+
+  const { data: rawBalanceTwo } = useReadContract({
+    address: tokenTwo.address,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [address],
+    query: { enabled: isConnected && !!address },
+  });
+
+  const balanceOneFormatted = rawBalanceOne != null
+    ? parseFloat(formatUnits(rawBalanceOne, tokenOne.decimals)).toFixed(4)
+    : null;
+
+  const balanceTwoFormatted = rawBalanceTwo != null
+    ? parseFloat(formatUnits(rawBalanceTwo, tokenTwo.decimals)).toFixed(4)
+    : null;
+
   function handleSlippageChange(e) {
     setSlippage(e.target.value);
   }
@@ -36,7 +61,7 @@ const { writeContractAsync } = useWriteContract();
     setTokenOneAmount(e.target.value);
 
     if (e.target.value && prices) {
-      setTokenTwoAmount((e.target.value * prices.ratio).toFixed(2));
+      setTokenTwoAmount((e.target.value * prices.ratio).toFixed(8));
     } else {
       setTokenTwoAmount(null);
     }
@@ -98,7 +123,7 @@ const { writeContractAsync } = useWriteContract();
     }
   }
 
-async function executeSwap() {
+  async function executeSwap() {
     if (!isConnected) {
       message.error("Connect your wallet first");
       return;
@@ -136,14 +161,13 @@ async function executeSwap() {
       if (quote.issues?.allowance) {
         message.info("Approving token spend...");
 
-        
         await writeContractAsync({
           address: tokenOne.address,
           abi: erc20Abi,
           functionName: "approve",
           args: [
-            quote.issues.allowance.spender, 
-            BigInt(sellAmount),              
+            quote.issues.allowance.spender,
+            BigInt(sellAmount),
           ],
         });
 
@@ -170,6 +194,17 @@ async function executeSwap() {
     fetchPrices(tokenList[0].address, tokenList[1].address);
     fetchRisk(tokenList[1].address);
   }, []);
+
+  // Compute USD values for display
+  const usdOne =
+    tokenOneAmount && prices
+      ? (tokenOneAmount * prices.tokenOne).toFixed(2)
+      : null;
+
+  const usdTwo =
+    tokenTwoAmount && prices
+      ? (tokenTwoAmount * prices.tokenTwo).toFixed(2)
+      : null;
 
   const settings = (
     <>
@@ -230,34 +265,70 @@ async function executeSwap() {
               <SettingOutlined className="cog" />
             </Popover>
           </div>
-          <div className="inputs">
-            <Input
-              placeholder="0"
-              value={tokenOneAmount}
-              onChange={changeAmount}
-              disabled={!prices}
-            />
-            <Input placeholder="0" value={tokenTwoAmount} disabled={true} />
+
+          {/* ---- Sell input ---- */}
+          <div className="inputGroup">
+            <div className="inputLabel">Sell</div>
+            <div className="inputWrapper">
+              <Input
+                placeholder="0"
+                value={tokenOneAmount}
+                onChange={changeAmount}
+                disabled={!prices}
+              />
+              <div className="assetSelect" onClick={() => openModal(1)}>
+                <img
+                  src={tokenOne.img}
+                  alt={tokenOne.ticker}
+                  className="assetLogo"
+                />
+                {tokenOne.ticker}
+                <DownOutlined />
+              </div>
+            </div>
+            <div className="inputMeta">
+              <span className="usdValue">
+                {usdOne ? `$${usdOne}` : ""}
+              </span>
+              <span className="walletBalance">
+                {balanceOneFormatted ? `${balanceOneFormatted} ${tokenOne.ticker}` : ""}
+              </span>
+            </div>
+          </div>
+
+          {/* ---- Switch button ---- */}
+          <div className="switchRow">
             <div className="switchButton" onClick={switchTokens}>
               <ArrowDownOutlined className="switchArrow" />
             </div>
-            <div className="assetOne" onClick={() => openModal(1)}>
-              <img
-                src={tokenOne.img}
-                alt="assetOneLogo"
-                className="assetLogo"
+          </div>
+
+          {/* ---- Buy input ---- */}
+          <div className="inputGroup">
+            <div className="inputLabel">Buy</div>
+            <div className="inputWrapper">
+              <Input
+                placeholder="0"
+                value={tokenTwoAmount}
+                disabled={true}
               />
-              {tokenOne.ticker}
-              <DownOutlined />
+              <div className="assetSelect" onClick={() => openModal(2)}>
+                <img
+                  src={tokenTwo.img}
+                  alt={tokenTwo.ticker}
+                  className="assetLogo"
+                />
+                {tokenTwo.ticker}
+                <DownOutlined />
+              </div>
             </div>
-            <div className="assetTwo" onClick={() => openModal(2)}>
-              <img
-                src={tokenTwo.img}
-                alt="assetOneLogo"
-                className="assetLogo"
-              />
-              {tokenTwo.ticker}
-              <DownOutlined />
+            <div className="inputMeta">
+              <span className="usdValue">
+                {usdTwo ? `$${usdTwo}` : ""}
+              </span>
+              <span className="walletBalance">
+                {balanceTwoFormatted ? `${balanceTwoFormatted} ${tokenTwo.ticker}` : ""}
+              </span>
             </div>
           </div>
 
