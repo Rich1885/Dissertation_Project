@@ -8,17 +8,32 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
+// demo token  
+const DEMO_TOKENS = {
+  "0x0000000000000000000000000000000000000001": {
+    address: "0x0000000000000000000000000000000000000001",
+    name: "Demo Scam Token",
+    symbol: "SCAM",
+    risk: "highRisk",
+    summary: "Multiple high-risk indicators — honeypot detected",
+    logo: "https://cdn-icons-png.flaticon.com/512/595/595067.png",
+  },
+};
+
 app.get("/tokenPrice", async (req, res) => {
+  const t0 = performance.now();
   try {
     const { query } = req;
 
-    // Demo token price
-    const demoAddresses = ["0x0000000000000000000000000000000000000001"];
-    const isOneDemo = demoAddresses.includes(query.addressOne);
-    const isTwoDemo = demoAddresses.includes(query.addressTwo);
+    const isOneDemo = !!DEMO_TOKENS[query.addressOne];
+    const isTwoDemo = !!DEMO_TOKENS[query.addressTwo];
 
-    const priceOne = isOneDemo ? 0.00001 : (await Moralis.EvmApi.token.getTokenPrice({ address: query.addressOne, chain: "0x2105" })).raw.usdPrice;
-    const priceTwo = isTwoDemo ? 0.00001 : (await Moralis.EvmApi.token.getTokenPrice({ address: query.addressTwo, chain: "0x2105" })).raw.usdPrice;
+    const priceOne = isOneDemo
+      ? 0.00001
+      : (await Moralis.EvmApi.token.getTokenPrice({ address: query.addressOne, chain: "0x2105" })).raw.usdPrice;
+    const priceTwo = isTwoDemo
+      ? 0.00001
+      : (await Moralis.EvmApi.token.getTokenPrice({ address: query.addressTwo, chain: "0x2105" })).raw.usdPrice;
 
     const usdPrices = {
       tokenOne: priceOne,
@@ -26,6 +41,7 @@ app.get("/tokenPrice", async (req, res) => {
       ratio: priceOne / priceTwo,
     };
 
+    console.log(`[LATENCY] /tokenPrice ${(performance.now() - t0).toFixed(1)}ms`);
     return res.status(200).json(usdPrices);
   } catch (e) {
     console.error("tokenPrice error:", e.message);
@@ -34,12 +50,12 @@ app.get("/tokenPrice", async (req, res) => {
 });
 
 app.get("/tokenRisk", async (req, res) => {
+  const t0 = performance.now();
   try {
     const { address } = req.query;
 
-    // Demo token to simulate a high-risk token
-    const demoTokens = {
-      "0x0000000000000000000000000000000000000001": {
+    if (DEMO_TOKENS[address]) {
+      return res.status(200).json({
         stats: { marketCap: 12400, holders: 47, liquidity: 890, volume1h: 12 },
         indicators: [
           { name: "Contract Ownership", detail: "Unverified contract", severity: "highRisk" },
@@ -51,121 +67,94 @@ app.get("/tokenRisk", async (req, res) => {
         ],
         tokenName: "Demo Scam Token",
         tokenSymbol: "SCAM",
-      },
-    };
-
-    if (demoTokens[address]) {
-      return res.status(200).json(demoTokens[address]);
+        tokenLogo: "https://cdn-icons-png.flaticon.com/512/595/595067.png",
+      });
     }
 
-    // 1. Token metadata from Moralis
+    const tMeta = performance.now();
     const metaResponse = await Moralis.EvmApi.token.getTokenMetadata({
       addresses: [address],
       chain: "0x2105",
     });
     const meta = metaResponse.raw[0];
+    const metaDuration = (performance.now() - tMeta).toFixed(1);
 
-    // 2. Token price from Moralis
-    const priceResponse = await Moralis.EvmApi.token.getTokenPrice({
-      address: address,
-      chain: "0x2105",
-    });
-    const price = priceResponse.raw;
+    const tPrice = performance.now();
+    let price = null;
+    try {
+      const priceResponse = await Moralis.EvmApi.token.getTokenPrice({ address, chain: "0x2105" });
+      price = priceResponse.raw;
+    } catch (priceErr) {
+      console.warn("Price fetch failed for", address, priceErr.message);
+    }
+    const priceDuration = (performance.now() - tPrice).toFixed(1);
 
-    // 3. Market data from CoinGecko
-    const cgResponse = await fetch(
-      `https://api.coingecko.com/api/v3/coins/base/contract/${address}`
-    );
-    const cgData = await cgResponse.json();
+    const tCg = performance.now();
+    let cgData = {};
+    try {
+      const cgResponse = await fetch(`https://api.coingecko.com/api/v3/coins/base/contract/${address}`);
+      if (cgResponse.ok) cgData = await cgResponse.json();
+    } catch (cgErr) {
+      console.warn("CoinGecko fetch failed for", address, cgErr.message);
+    }
+    const cgDuration = (performance.now() - tCg).toFixed(1);
 
-    // --- HEURISTIC EVALUATION ---
+    const tHeuristic = performance.now();
 
-    // Token Age
     const createdAt = meta.created_at ? new Date(meta.created_at) : null;
     const ageDays = createdAt
       ? Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
       : null;
 
-    let ageSeverity = "noFlag";
-    let ageDetail = ageDays !== null ? `${ageDays} days old` : "Unknown";
-    if (ageDays !== null && ageDays < 7) {
-      ageSeverity = "highRisk";
-    } else if (ageDays !== null && ageDays < 30) {
-      ageSeverity = "caution";
-      ageDetail = `${ageDays} days old — very new`;
-    } else if (ageDays !== null && ageDays < 730) {
-      ageSeverity = "caution";
-      ageDetail = `${ageDays} days old — under 2 years`;
-    }
-
-    // Contract Verification (proxy for ownership transparency)
     const verified = meta.verified_contract;
     const securityScore = meta.security_score || 0;
 
     let ownershipSeverity = "noFlag";
-    let ownershipDetail = "Verified contract";
-    if (!verified) {
-      ownershipSeverity = "highRisk";
-      ownershipDetail = "Unverified contract";
-    } else if (securityScore < 80) {
-      ownershipSeverity = "caution";
-      ownershipDetail = `Security score: ${securityScore}/100`;
-    } else {
-      ownershipDetail = `Score: ${securityScore}/100`;
-    }
+    let ownershipDetail = verified ? `Score: ${securityScore}/100` : "Unverified contract";
+    if (!verified) ownershipSeverity = "highRisk";
+    else if (securityScore < 80) { ownershipSeverity = "caution"; ownershipDetail = `Security score: ${securityScore}/100`; }
 
-    // Upgradeability (limited detection on free tier)
     let upgradeSeverity = "noFlag";
     let upgradeDetail = "No proxy detected";
     if (securityScore > 0 && securityScore < 70) {
       upgradeSeverity = "caution";
-      upgradeDetail = "Low security score- review contract";
+      upgradeDetail = "Low security score — review contract";
     }
 
-    // Holder Concentration (from CoinGecko if available)
-    const holders = cgData.market_data?.total_supply
-      ? Math.round(cgData.community_data?.twitter_followers || 0)
-      : null;
-    let holderSeverity = "noFlag";
-    let holderDetail = "Data limited on free tier";
+    let ageSeverity = "noFlag";
+    let ageDetail = ageDays !== null ? `${ageDays} days old` : "Unknown";
+    if (ageDays !== null && ageDays < 7) ageSeverity = "highRisk";
+    else if (ageDays !== null && ageDays < 30) { ageSeverity = "caution"; ageDetail = `${ageDays} days old — very new`; }
+    else if (ageDays !== null && ageDays < 730) { ageSeverity = "caution"; ageDetail = `${ageDays} days old — under 2 years`; }
 
-    // Liquidity (from CoinGecko total_volume)
     const volume24h = cgData.market_data?.total_volume?.usd || 0;
-    const marketCap = cgData.market_data?.market_cap?.usd || meta.market_cap || 0;
+    const marketCap = cgData.market_data?.market_cap?.usd || 0;
     let liquiditySeverity = "noFlag";
     let liquidityDetail = "Liquidity data unavailable";
     if (marketCap > 0 && volume24h > 0) {
-      const volumeToMcap = volume24h / marketCap;
-      liquidityDetail = `Vol/MCap ratio: ${(volumeToMcap * 100).toFixed(1)}%`;
-      if (volumeToMcap < 0.005) {
-        liquiditySeverity = "highRisk";
-        liquidityDetail = "Very low trading volume";
-      } else if (volumeToMcap < 0.03) {
-        liquiditySeverity = "caution";
-        liquidityDetail = `Low Vol/MCap ratio: ${(volumeToMcap * 100).toFixed(1)}%`;
-      }
+      const ratio = volume24h / marketCap;
+      liquidityDetail = `Vol/MCap ratio: ${(ratio * 100).toFixed(1)}%`;
+      if (ratio < 0.005) { liquiditySeverity = "highRisk"; liquidityDetail = "Very low trading volume"; }
+      else if (ratio < 0.03) { liquiditySeverity = "caution"; liquidityDetail = `Low Vol/MCap ratio: ${(ratio * 100).toFixed(1)}%`; }
+    } else if (marketCap === 0 && volume24h === 0) {
+      liquiditySeverity = "caution";
+      liquidityDetail = "No market data available";
     }
 
-    // Tax / Honeypot Signals
     const isSpam = meta.possible_spam;
     let taxSeverity = "noFlag";
     let taxDetail = "None detected";
-    if (isSpam) {
-      taxSeverity = "highRisk";
-      taxDetail = "Flagged as possible spam";
-    } else if (securityScore > 0 && securityScore < 50) {
-      taxSeverity = "caution";
-      taxDetail = "Low security score- potential risk";
-    }
+    if (isSpam) { taxSeverity = "highRisk"; taxDetail = "Flagged as possible spam"; }
+    else if (securityScore > 0 && securityScore < 50) { taxSeverity = "caution"; taxDetail = "Low security score — potential risk"; }
 
-    // --- BUILD RESPONSE ---
-    const holderCount = cgData.market_data?.total_supply ?
-      (cgData.community_data?.telegram_channel_user_count || "N/A") : "N/A";
+    const heuristicDuration = (performance.now() - tHeuristic).toFixed(1);
+    const totalDuration = (performance.now() - t0).toFixed(1);
+    console.log(`[LATENCY] /tokenRisk ${meta.symbol} | total: ${totalDuration}ms | moralis-meta: ${metaDuration}ms | moralis-price: ${priceDuration}ms | coingecko: ${cgDuration}ms | heuristics: ${heuristicDuration}ms`);
 
     return res.status(200).json({
       stats: {
-        marketCap: marketCap,
-        holders: holderCount,
+        marketCap,
+        holders: cgData.community_data?.telegram_channel_user_count || "N/A",
         liquidity: volume24h,
         volume1h: volume24h ? Math.round(volume24h / 24) : 0,
       },
@@ -173,12 +162,13 @@ app.get("/tokenRisk", async (req, res) => {
         { name: "Contract Ownership", detail: ownershipDetail, severity: ownershipSeverity },
         { name: "Upgradeability", detail: upgradeDetail, severity: upgradeSeverity },
         { name: "Token Age", detail: ageDetail, severity: ageSeverity },
-        { name: "Holder Concentration", detail: holderDetail, severity: holderSeverity },
+        { name: "Holder Concentration", detail: "Data limited on free tier", severity: "noFlag" },
         { name: "Liquidity Lock", detail: liquidityDetail, severity: liquiditySeverity },
         { name: "Tax / Honeypot Signals", detail: taxDetail, severity: taxSeverity },
       ],
       tokenName: meta.name,
       tokenSymbol: meta.symbol,
+      tokenLogo: meta.thumbnail || meta.logo || null,
     });
 
   } catch (e) {
@@ -189,31 +179,21 @@ app.get("/tokenRisk", async (req, res) => {
 
 app.get("/tokenSummary", async (req, res) => {
   try {
-    const { addresses } = req.query;
-    const addressList = addresses.split(",");
+    const addressList = req.query.addresses.split(",");
 
-    // Demo tokens that aren't in Moralis
-    const demoSummaries = {
-      "0x0000000000000000000000000000000000000001": {
-        address: "0x0000000000000000000000000000000000000001",
-        name: "Demo Scam Token",
-        symbol: "SCAM",
-        risk: "highRisk",
-        summary: "Multiple high-risk indicators — honeypot detected",
-      },
-    };
+    const settled = await Promise.allSettled(
+      addressList.map(async (address) => {
+        // Return hardcoded demo data — never hits Moralis
+        if (DEMO_TOKENS[address.toLowerCase()]) {
+          return DEMO_TOKENS[address.toLowerCase()];
+        }
 
-    const realAddresses = addressList.filter((addr) => !demoSummaries[addr.toLowerCase()]);
+        const metaResponse = await Moralis.EvmApi.token.getTokenMetadata({
+          addresses: [address],
+          chain: "0x2105",
+        });
 
-    let results = [];
-
-    if (realAddresses.length > 0) {
-      const metaResponse = await Moralis.EvmApi.token.getTokenMetadata({
-        addresses: realAddresses,
-        chain: "0x2105",
-      });
-
-      results = metaResponse.raw.map((meta) => {
+        const meta = metaResponse.raw[0];
         const securityScore = meta.security_score || 0;
         const isSpam = meta.possible_spam;
         const verified = meta.verified_contract;
@@ -246,14 +226,22 @@ app.get("/tokenSummary", async (req, res) => {
           symbol: meta.symbol,
           risk,
           summary,
+          logo: meta.thumbnail || meta.logo || null,
         };
-      });
-    }
+      })
+    );
 
-    addressList.forEach((addr) => {
-      if (demoSummaries[addr.toLowerCase()]) {
-        results.push(demoSummaries[addr.toLowerCase()]);
-      }
+    const results = settled.map((result, i) => {
+      if (result.status === "fulfilled") return result.value;
+      console.warn(`tokenSummary: skipping ${addressList[i]} —`, result.reason?.message);
+      return {
+        address: addressList[i],
+        name: addressList[i].slice(0, 8) + "...",
+        symbol: "???",
+        risk: "caution",
+        summary: "Data unavailable for this token",
+        logo: null,
+      };
     });
 
     return res.status(200).json(results);
@@ -263,29 +251,51 @@ app.get("/tokenSummary", async (req, res) => {
   }
 });
 
-app.get("/quote", async (req, res) => {
+// ─── /tokenLogos ──────────────────────────────────────────────────────────────
+app.get("/tokenLogos", async (req, res) => {
   try {
-    const { sellToken, buyToken, sellAmount, taker } = req.query;
+    const addressList = req.query.addresses.split(",");
 
-    const params = new URLSearchParams({
-      chainId: "8453",
-      sellToken,
-      buyToken,
-      sellAmount,
-      taker,
-    });
-
-    const response = await fetch(
-      `https://api.0x.org/swap/allowance-holder/price?${params}`,
-      {
-        headers: {
-          "0x-api-key": process.env.ZEROX_KEY,
-          "0x-version": "v2",
-        },
-      }
+    const settled = await Promise.allSettled(
+      addressList.map(async (address) => {
+        if (DEMO_TOKENS[address.toLowerCase()]) {
+          return { address, logo: DEMO_TOKENS[address.toLowerCase()].logo };
+        }
+        const metaResponse = await Moralis.EvmApi.token.getTokenMetadata({
+          addresses: [address],
+          chain: "0x2105",
+        });
+        const meta = metaResponse.raw[0];
+        return { address, logo: meta.thumbnail || meta.logo || null };
+      })
     );
 
+    const logos = {};
+    settled.forEach((result, i) => {
+      if (result.status === "fulfilled") {
+        logos[result.value.address.toLowerCase()] = result.value.logo;
+      } else {
+        logos[addressList[i].toLowerCase()] = null;
+      }
+    });
+
+    return res.status(200).json(logos);
+  } catch (e) {
+    console.error("tokenLogos error:", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+app.get("/quote", async (req, res) => {
+  const t0 = performance.now();
+  try {
+    const { sellToken, buyToken, sellAmount, taker } = req.query;
+    const params = new URLSearchParams({ chainId: "8453", sellToken, buyToken, sellAmount, taker });
+    const response = await fetch(`https://api.0x.org/swap/allowance-holder/price?${params}`, {
+      headers: { "0x-api-key": process.env.ZEROX_KEY, "0x-version": "v2" },
+    });
     const data = await response.json();
+    console.log(`[LATENCY] /quote ${(performance.now() - t0).toFixed(1)}ms`);
     res.status(200).json(data);
   } catch (e) {
     console.error("quote error:", e.message);
@@ -294,29 +304,15 @@ app.get("/quote", async (req, res) => {
 });
 
 app.get("/swap", async (req, res) => {
+  const t0 = performance.now();
   try {
     const { sellToken, buyToken, sellAmount, taker, slippageBps } = req.query;
-
-    const params = new URLSearchParams({
-      chainId: "8453",
-      sellToken,
-      buyToken,
-      sellAmount,
-      taker,
-      slippageBps,
+    const params = new URLSearchParams({ chainId: "8453", sellToken, buyToken, sellAmount, taker, slippageBps });
+    const response = await fetch(`https://api.0x.org/swap/allowance-holder/quote?${params}`, {
+      headers: { "0x-api-key": process.env.ZEROX_KEY, "0x-version": "v2" },
     });
-
-    const response = await fetch(
-      `https://api.0x.org/swap/allowance-holder/quote?${params}`,
-      {
-        headers: {
-          "0x-api-key": process.env.ZEROX_KEY,
-          "0x-version": "v2",
-        },
-      }
-    );
-
     const data = await response.json();
+    console.log(`[LATENCY] /swap ${(performance.now() - t0).toFixed(1)}ms`);
     res.status(200).json(data);
   } catch (e) {
     console.error("swap error:", e.message);
@@ -324,10 +320,6 @@ app.get("/swap", async (req, res) => {
   }
 });
 
-Moralis.start({
-  apiKey: process.env.MORALIS_KEY,
-}).then(() => {
-  app.listen(port, () => {
-    console.log(`Listening for API Calls`);
-  });
+Moralis.start({ apiKey: process.env.MORALIS_KEY }).then(() => {
+  app.listen(port, () => console.log(`Listening for API Calls`));
 });
