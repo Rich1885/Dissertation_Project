@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import Swap from "./components/Swap";
 import Tokens from "./components/Tokens";
 import LandingPage from "./components/LandingPage"
+import DocsPage from "./components/DocsPage";
 import { Routes, Route, useLocation } from "react-router-dom";
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/docs" element={<DocsPage />} />
       </Routes>
 
       <div className="mainWindow">

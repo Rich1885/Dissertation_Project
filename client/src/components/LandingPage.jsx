@@ -10,7 +10,9 @@ function LandingPage() {
                     <span className="brandName">SentinelDEX</span>
                 </div>
                 <div className="rightH">
-                    <span className="headerItem">Docs</span>
+                    <Link to="/docs" className="link">
+                        <span className="headerItem">Docs</span>
+                    </Link>
                     <Link to="/swap" className="link">
                         <div className="connectButton">Launch App</div>
                     </Link>
@@ -31,7 +33,9 @@ function LandingPage() {
                 </p>
 
                 <div className="heroCTAs">
-                    <button className="btnOutline">How It Works</button>
+                    <Link to="/docs">
+                        <button className="btnOutline">How It Works</button>
+                    </Link>
                     <Link to="/swap">
                         <button className="btnPrimary">Launch App</button>
                     </Link>

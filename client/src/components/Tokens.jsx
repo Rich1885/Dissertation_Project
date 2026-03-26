@@ -23,6 +23,20 @@ function formatNumber(num) {
   return `$${num}`;
 }
 
+function getTokenImg(token) {
+  // Try Moralis logo from API, then fallback to tokens.json img
+  if (token.logo) return token.logo;
+  const match = tokenList.find(
+    (t) => t.address.toLowerCase() === token.address?.toLowerCase()
+  );
+  return match?.img || null;
+}
+
+function imgFallback(ev, symbol) {
+  ev.target.onerror = null;
+  ev.target.src = `https://ui-avatars.com/api/?name=${symbol}&background=1a2044&color=8a8fb5&size=64&font-size=0.4&bold=true`;
+}
+
 function Tokens() {
   const [tokens, setTokens] = useState([]);
   const [expandedIndex, setExpandedIndex] = useState(null);
@@ -51,7 +65,6 @@ function Tokens() {
 
     setExpandedIndex(index);
 
-    // Only fetch if we haven't already
     if (!detailData[address]) {
       try {
         const res = await axios.get("http://localhost:3001/tokenRisk", {
@@ -80,6 +93,12 @@ function Tokens() {
           >
             <div className="tokenCardLeft">
               <div className="tokenCardHeader">
+                <img
+                  src={getTokenImg(token)}
+                  alt={token.symbol}
+                  className="tokenCardLogo"
+                  onError={(ev) => imgFallback(ev, token.symbol)}
+                />
                 <span className={`riskDot ${severityToColor(token.risk)}`}></span>
                 <span className="tokenCardName">{token.name}</span>
                 <span className={`riskBadge ${token.risk}`}>

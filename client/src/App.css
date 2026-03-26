@@ -924,3 +924,9 @@ header {
   border-color: var(--accent-purple);
   color: var(--accent-purple);
 }
+
+.tokenCardLogo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
