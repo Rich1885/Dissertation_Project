@@ -346,7 +346,7 @@ function Swap() {
           </div>
         </div>
 
-        <RiskPanel riskData={riskData} />
+        <RiskPanel riskData={riskData} token={tokenTwo} />
       </div>
     </>
   );

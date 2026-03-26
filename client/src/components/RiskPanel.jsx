@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { DownOutlined, RightOutlined } from "@ant-design/icons";
 
 function formatNumber(num) {
   if (num === "N/A" || num === undefined) return "N/A";
@@ -20,7 +21,9 @@ function severityToLabel(severity) {
   return "No Flag";
 }
 
-function RiskPanel({ riskData }) {
+function RiskPanel({ riskData, token }) {
+  const [isOpen, setIsOpen] = useState(false);
+
   if (!riskData) return null;
 
   const hasHighRisk = riskData.indicators.some(i => i.severity === "highRisk");
@@ -38,56 +41,70 @@ function RiskPanel({ riskData }) {
 
   return (
     <div className="riskPanel">
-      <div className="riskPanelHeader">
-        <span className="riskPanelTitle">TOKEN RISK SUMMARY</span>
-        <span className={`riskPanelStatus ${statusClass}`}>● {statusText}</span>
-      </div>
-
-      <div className="riskStats">
-        <div className="riskStatItem">
-          <span className="riskStatLabel">Market Cap</span>
-          <span className="riskStatValue">{formatNumber(riskData.stats.marketCap)}</span>
+      <div className="riskPanelHeader" onClick={() => setIsOpen(!isOpen)} style={{ cursor: "pointer" }}>
+        <div className="riskPanelTitleRow">
+          {token && (
+            <img src={token.img} alt={token.ticker} className="riskTokenLogo" />
+          )}
+          <span className="riskPanelTitle">
+            {token ? `${token.ticker} RISK SUMMARY` : "TOKEN RISK SUMMARY"}
+          </span>
+          <span className={`riskPanelStatus ${statusClass}`}>● {statusText}</span>
         </div>
-        <div className="riskStatItem">
-          <span className="riskStatLabel">Holders</span>
-          <span className="riskStatValue">{riskData.stats.holders?.toLocaleString?.() || riskData.stats.holders}</span>
-        </div>
-        <div className="riskStatItem">
-          <span className="riskStatLabel">Liquidity</span>
-          <span className="riskStatValue">{formatNumber(riskData.stats.liquidity)}</span>
-        </div>
-        <div className="riskStatItem">
-          <span className="riskStatLabel">1H Volume</span>
-          <span className="riskStatValue">{formatNumber(riskData.stats.volume1h)}</span>
+        <div className="tokenCardArrow">
+          {isOpen ? <DownOutlined /> : <RightOutlined />}
         </div>
       </div>
 
-      <div className="riskIndicators">
-        <div className="riskIndicatorsTitle">HEURISTIC INDICATORS</div>
-
-        {riskData.indicators.map((indicator, index) => (
-          <div className="riskIndicator" key={index}>
-            <div className="riskIndicatorLeft">
-              <span className={`riskDot ${severityToColor(indicator.severity)}`}></span>
-              <span className="riskIndicatorName">{indicator.name}</span>
+      {isOpen && (
+        <>
+          <div className="riskStats">
+            <div className="riskStatItem">
+              <span className="riskStatLabel">Market Cap</span>
+              <span className="riskStatValue">{formatNumber(riskData.stats.marketCap)}</span>
             </div>
-            <div className="riskIndicatorRight">
-              <span className="riskIndicatorDetail">{indicator.detail}</span>
-              <span className={`riskBadge ${indicator.severity}`}>
-                {severityToLabel(indicator.severity)}
-              </span>
+            <div className="riskStatItem">
+              <span className="riskStatLabel">Holders</span>
+              <span className="riskStatValue">{riskData.stats.holders?.toLocaleString?.() || riskData.stats.holders}</span>
+            </div>
+            <div className="riskStatItem">
+              <span className="riskStatLabel">Liquidity</span>
+              <span className="riskStatValue">{formatNumber(riskData.stats.liquidity)}</span>
+            </div>
+            <div className="riskStatItem">
+              <span className="riskStatLabel">1H Volume</span>
+              <span className="riskStatValue">{formatNumber(riskData.stats.volume1h)}</span>
             </div>
           </div>
-        ))}
-      </div>
 
-      <div className="riskPanelFooter">
-        <a href="#">View Full Analysis →</a>
-      </div>
-      <p className="riskDisclaimer">
-        Heuristic analysis only; results may include false positives or miss novel
-        patterns. Not financial advice. Always conduct independent research before trading.
-      </p>
+          <div className="riskIndicators">
+            <div className="riskIndicatorsTitle">HEURISTIC INDICATORS</div>
+
+            {riskData.indicators.map((indicator, index) => (
+              <div className="riskIndicator" key={index}>
+                <div className="riskIndicatorLeft">
+                  <span className={`riskDot ${severityToColor(indicator.severity)}`}></span>
+                  <span className="riskIndicatorName">{indicator.name}</span>
+                </div>
+                <div className="riskIndicatorRight">
+                  <span className="riskIndicatorDetail">{indicator.detail}</span>
+                  <span className={`riskBadge ${indicator.severity}`}>
+                    {severityToLabel(indicator.severity)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="riskPanelFooter">
+            <a href="#">View Full Analysis →</a>
+          </div>
+          <p className="riskDisclaimer">
+            Heuristic analysis only; results may include false positives or miss novel
+            patterns. Not financial advice. Always conduct independent research before trading.
+          </p>
+        </>
+      )}
     </div>
   );
 }
