@@ -930,3 +930,32 @@ header {
   height: 28px;
   border-radius: 50%;
 }
+.chartModal .ant-modal {
+  width: 1500px !important;
+  max-width: 95vw !important;
+}
+
+.chartModal .ant-modal-content {
+  padding: 0 !important;
+}
+
+.chartModal .ant-modal-body {
+  height: 80vh !important;
+  padding: 0 !important;
+}
+
+.chartLink {
+  color: var(--accent-purple);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 4px 12px;
+  border: 1px solid var(--accent-purple);
+  border-radius: var(--radius-pill);
+  transition: all 0.2s ease;
+}
+
+.chartLink:hover {
+  background: rgba(124, 58, 237, 0.15);
+  color: var(--accent-purple);
+}

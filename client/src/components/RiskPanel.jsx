@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Modal } from "antd";
 import { DownOutlined, RightOutlined } from "@ant-design/icons";
 
 function formatNumber(num) {
@@ -23,6 +24,7 @@ function severityToLabel(severity) {
 
 function RiskPanel({ riskData, token }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [chartOpen, setChartOpen] = useState(false);
 
   if (!riskData) return null;
 
@@ -41,20 +43,56 @@ function RiskPanel({ riskData, token }) {
 
   return (
     <div className="riskPanel">
-      <div className="riskPanelHeader" onClick={() => setIsOpen(!isOpen)} style={{ cursor: "pointer" }}>
-        <div className="riskPanelTitleRow">
-          {token && (
-            <img src={token.img} alt={token.ticker} className="riskTokenLogo" />
-          )}
-          <span className="riskPanelTitle">
-            {token ? `${token.ticker} RISK SUMMARY` : "TOKEN RISK SUMMARY"}
-          </span>
-          <span className={`riskPanelStatus ${statusClass}`}>● {statusText}</span>
-        </div>
-        <div className="tokenCardArrow">
-          {isOpen ? <DownOutlined /> : <RightOutlined />}
-        </div>
-      </div>
+      <Modal
+  open={chartOpen}
+  footer={null}
+  onCancel={() => setChartOpen(false)}
+  title={token ? `${token.ticker} Price Chart` : "Price Chart"}
+  width={1500}
+  rootClassName="chartModal"
+  styles={{ body: { padding: 0, height: "80vh" } }}
+>
+  {token && (
+    <iframe
+      src={`https://dexscreener.com/base/${token.address}?embed=1&theme=dark&info=0`}
+      style={{
+        width: "100%",
+        height: "80vh",
+        border: "none",
+      }}
+      title="Token Chart"
+    />
+  )}
+</Modal>
+
+      <div className="riskPanelHeader" style={{ cursor: "pointer" }}>
+  <div className="riskPanelTitleRow" onClick={() => setIsOpen(!isOpen)}>
+    {token && (
+      <img
+        src={token.img}
+        alt={token.ticker}
+        className="riskTokenLogo"
+        onError={(ev) => { ev.target.onerror = null; ev.target.src = `https://ui-avatars.com/api/?name=${token.ticker}&background=1a2044&color=8a8fb5&size=64&font-size=0.4&bold=true`; }}
+      />
+    )}
+    <span className="riskPanelTitle">
+      {token ? `${token.ticker} RISK SUMMARY` : "TOKEN RISK SUMMARY"}
+    </span>
+    <span className={`riskPanelStatus ${statusClass}`}>● {statusText}</span>
+  </div>
+  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <a
+      href="#"
+      className="chartLink"
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setChartOpen(true); }}
+    >
+      Chart
+    </a>
+    <div className="tokenCardArrow" onClick={() => setIsOpen(!isOpen)}>
+      {isOpen ? <DownOutlined /> : <RightOutlined />}
+    </div>
+  </div>
+</div>
 
       {isOpen && (
         <>
@@ -97,7 +135,9 @@ function RiskPanel({ riskData, token }) {
           </div>
 
           <div className="riskPanelFooter">
-            <a href="#">View Full Analysis →</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); setChartOpen(true);}}>
+              View Full Analysis →
+            </a>
           </div>
           <p className="riskDisclaimer">
             Heuristic analysis only; results may include false positives or miss novel
