@@ -71,33 +71,33 @@ app.get("/tokenRisk", async (req, res) => {
       });
     }
 
-    const tMeta = performance.now();
-    const metaResponse = await Moralis.EvmApi.token.getTokenMetadata({
-      addresses: [address],
-      chain: "0x2105",
-    });
+    
+    const tParallel = performance.now();
+
+    const [metaResponse, price, cgData] = await Promise.all([
+      Moralis.EvmApi.token.getTokenMetadata({
+        addresses: [address],
+        chain: "0x2105",
+      }),
+
+      Moralis.EvmApi.token.getTokenPrice({ address, chain: "0x2105" })
+        .then(r => r.raw)
+        .catch(priceErr => {
+          console.warn("Price fetch failed for", address, priceErr.message);
+          return null;
+        }),
+
+      fetch(`https://api.coingecko.com/api/v3/coins/base/contract/${address}`)
+        .then(r => r.ok ? r.json() : {})
+        .catch(cgErr => {
+          console.warn("CoinGecko fetch failed for", address, cgErr.message);
+          return {};
+        }),
+    ]);
+
+    const parallelDuration = (performance.now() - tParallel).toFixed(1);
     const meta = metaResponse.raw[0];
-    const metaDuration = (performance.now() - tMeta).toFixed(1);
-
-    const tPrice = performance.now();
-    let price = null;
-    try {
-      const priceResponse = await Moralis.EvmApi.token.getTokenPrice({ address, chain: "0x2105" });
-      price = priceResponse.raw;
-    } catch (priceErr) {
-      console.warn("Price fetch failed for", address, priceErr.message);
-    }
-    const priceDuration = (performance.now() - tPrice).toFixed(1);
-
-    const tCg = performance.now();
-    let cgData = {};
-    try {
-      const cgResponse = await fetch(`https://api.coingecko.com/api/v3/coins/base/contract/${address}`);
-      if (cgResponse.ok) cgData = await cgResponse.json();
-    } catch (cgErr) {
-      console.warn("CoinGecko fetch failed for", address, cgErr.message);
-    }
-    const cgDuration = (performance.now() - tCg).toFixed(1);
+    // ── End parallel block ──────────────────────────────────────
 
     const tHeuristic = performance.now();
 
@@ -149,7 +149,7 @@ app.get("/tokenRisk", async (req, res) => {
 
     const heuristicDuration = (performance.now() - tHeuristic).toFixed(1);
     const totalDuration = (performance.now() - t0).toFixed(1);
-    console.log(`[LATENCY] /tokenRisk ${meta.symbol} | total: ${totalDuration}ms | moralis-meta: ${metaDuration}ms | moralis-price: ${priceDuration}ms | coingecko: ${cgDuration}ms | heuristics: ${heuristicDuration}ms`);
+    console.log(`[LATENCY] /tokenRisk ${meta.symbol} | total: ${totalDuration}ms | parallel-apis: ${parallelDuration}ms | heuristics: ${heuristicDuration}ms`);
 
     return res.status(200).json({
       stats: {
