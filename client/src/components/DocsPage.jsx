@@ -193,7 +193,16 @@ function DocsPage() {
         <p className="featuresIntro">
           SentinelDEX is a React frontend talking to a Node.js/Express backend
           that proxies requests to three external services. No API keys are
-          ever exposed to the browser.
+          ever exposed to the browser. The full source code is available on{" "}
+          <a
+            href="https://github.com/Rich1885/Dissertation_Project"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--accent-purple)" }}
+          >
+            GitHub
+          </a>
+          .
         </p>
 
         <div className="featuresGrid">
@@ -229,6 +238,28 @@ function DocsPage() {
             </p>
           </div>
         </div>
+
+        <h3 style={{ textAlign: "center", marginTop: "48px" }}>
+          Running Locally
+        </h3>
+        <p className="featuresIntro">
+          SentinelDEX requires <strong>Node.js v18+</strong> and API keys for
+          Moralis and 0x. Clone the repository, create a <code>.env</code> file
+          in the <code>server/</code> folder with your keys, then run{" "}
+          <code>npm install</code> and <code>node index.js</code> in the server
+          folder and <code>npm install</code> and <code>npm run dev</code> in
+          the client folder. Full setup instructions are in the{" "}
+          <a
+            href="https://github.com/Rich1885/Dissertation_Project"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--accent-purple)" }}
+          >
+            README
+          </a>
+          .
+        </p>
+
       </div>
 
       <div className="landingFooter">
