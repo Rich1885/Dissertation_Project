@@ -114,7 +114,7 @@ function Tokens() {
     async function fetchSummaries() {
       try {
         const addresses = tokenList.map((t) => t.address).join(",");
-        const res = await axios.get("http://localhost:3001/tokenSummary", {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/tokenSummary`, {
           params: { addresses },
         });
         setTokens(res.data);
@@ -133,7 +133,7 @@ function Tokens() {
     setExpandedIndex(index);
     if (!detailData[address]) {
       try {
-        const res = await axios.get("http://localhost:3001/tokenRisk", {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/tokenRisk`, {
           params: { address },
         });
         setDetailData((prev) => ({ ...prev, [address]: res.data }));

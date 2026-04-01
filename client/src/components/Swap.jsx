@@ -105,7 +105,7 @@ function Swap() {
   }
 
   async function fetchPrices(one, two) {
-    const res = await axios.get("http://localhost:3001/tokenPrice", {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/tokenPrice`, {
       params: { addressOne: one, addressTwo: two },
     });
     setPrices(res.data);
@@ -113,7 +113,7 @@ function Swap() {
 
   async function fetchRisk(address) {
     try {
-      const res = await axios.get("http://localhost:3001/tokenRisk", {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/tokenRisk`, {
         params: { address },
       });
       setRiskData(res.data);
@@ -141,7 +141,7 @@ function Swap() {
 
       const slippageBps = Math.round(slippage * 100).toString();
 
-      const res = await axios.get("http://localhost:3001/swap", {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/swap`, {
         params: {
           sellToken: tokenOne.address,
           buyToken: tokenTwo.address,
