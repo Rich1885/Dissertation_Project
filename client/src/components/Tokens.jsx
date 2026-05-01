@@ -1,13 +1,15 @@
+// Tracked Tokens dashboard. Fetches /tokenSummary for the full token list and renders one card per token, grouped by category. 
+
 import React, { useState, useEffect } from "react";
 import { RightOutlined, DownOutlined } from "@ant-design/icons";
 import axios from "axios";
 import tokenList from "../tokens.json";
 
+// Category groupings used to build section headers in the dashboard.
 const TOKEN_GROUPS = [
   {
     label: "Blue Chips",
     addresses: [
-      "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
       "0x4200000000000000000000000000000000000006",
       "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf",
     ],
@@ -72,6 +74,7 @@ function getGroupLabel(address) {
   return "Other";
 }
 
+//Display helpers 
 function severityToColor(risk) {
   if (risk === "highRisk") return "red";
   if (risk === "caution") return "amber";
@@ -110,6 +113,7 @@ function Tokens() {
   const [expandedIndex, setExpandedIndex] = useState(null);
   const [detailData, setDetailData] = useState({});
 
+  // Initial load - fetch compact summaries for every tracked token.
   useEffect(() => {
     async function fetchSummaries() {
       try {
@@ -125,6 +129,7 @@ function Tokens() {
     fetchSummaries();
   }, []);
 
+  // load the full risk breakdown the first time a card is expanded.
   async function toggleExpand(index, address) {
     if (expandedIndex === index) {
       setExpandedIndex(null);

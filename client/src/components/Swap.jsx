@@ -1,3 +1,6 @@
+// Swap interface- main trading screen.
+// Connects to the user's wallet, fetches indicative prices, runs a  risk scan on the buy-side token and submits the final 0x-routed transaction through wagmi.
+
 import React, { useState, useEffect } from "react";
 import { Input, Popover, Radio, Modal, message } from "antd";
 import {
@@ -53,6 +56,7 @@ function Swap() {
     ? parseFloat(formatUnits(rawBalanceTwo, tokenTwo.decimals)).toFixed(4)
     : null;
 
+  // UI handlers 
   function handleSlippageChange(e) {
     setSlippage(e.target.value);
   }
@@ -104,6 +108,7 @@ function Swap() {
     setIsOpen(false);
   }
 
+  // Backend calls 
   async function fetchPrices(one, two) {
     const res = await axios.get(`${import.meta.env.VITE_API_URL}/tokenPrice`, {
       params: { addressOne: one, addressTwo: two },
@@ -123,6 +128,8 @@ function Swap() {
     }
   }
 
+  // Swap execution 
+  // Fetches an executable 0x quote, requests an ERC-20 approval if the AllowanceHolder needs one, then submits the swap transaction.
   async function executeSwap() {
     if (!isConnected) {
       message.error("Connect your wallet first");
@@ -186,10 +193,11 @@ function Swap() {
       message.success("Swap submitted!");
     } catch (e) {
       console.error("Swap failed:", e);
-      message.error("Swap failed — check console");
+      message.error("Swap failed - check console");
     }
   }
 
+  // Initial load - prime the price feed and run the first risk scan.
   useEffect(() => {
     fetchPrices(tokenList[0].address, tokenList[1].address);
     fetchRisk(tokenList[1].address);

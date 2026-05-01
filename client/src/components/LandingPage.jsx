@@ -66,7 +66,7 @@ function LandingPage() {
                         <div className="featureIcon"></div>
                         <h4>Real-Time Token Risk Scanner</h4>
                         <p>
-                            Heuristic evaluation of ownership privileges, liquidity lock status, holder concentration, and contract age — surfaced at the point of trade with sub-300 ms latency.
+                            Heuristic evaluation of ownership privileges, liquidity lock status, holder concentration, and contract age - surfaced at the point of trade with sub-300 ms latency.
                         </p>
                     </div>
 

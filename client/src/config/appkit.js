@@ -1,3 +1,6 @@
+// Reown AppKit + Wagmi configuration for Base mainnet (chain 8453).
+// Imported once by main.jsx to register the wallet-connect modal.
+
 import { createAppKit } from "@reown/appkit/react";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { base } from "@reown/appkit/networks";

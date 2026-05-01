@@ -20,7 +20,7 @@ function DocsPage() {
 
         <h3 style={{ textAlign: "center" }}>Getting Started</h3>
         <p className="featuresIntro">
-          SentinelDEX runs on the <strong>Base</strong> network — a fast,
+          SentinelDEX runs on the <strong>Base</strong> network a fast,
           low-cost Ethereum Layer 2 built by Coinbase. You will need a browser
           wallet like MetaMask and a small amount of ETH on Base to cover
           transaction fees.
@@ -41,7 +41,7 @@ function DocsPage() {
                 metamask.io
               </a>{" "}
               and create a wallet. Write down your recovery phrase and store it
-              somewhere safe — never share it with anyone.
+              somewhere safe - never share it with anyone.
             </p>
           </div>
 
@@ -108,7 +108,7 @@ function DocsPage() {
             <p>
               Before swapping, check the <strong>Risk Summary</strong> panel
               below the swap box. It shows heuristic risk indicators for the
-              buy token. When ready, click <strong>Swap</strong> — your wallet
+              buy token. When ready, click <strong>Swap</strong> - your wallet
               will ask you to approve the token spend, then confirm the trade.
             </p>
           </div>

@@ -1,7 +1,12 @@
+// Token Risk Summary panel shown beside the Swap interface.
+// Defaults to collapsed, expanding reveals the six heuristic indicators
+// returned by /tokenRisk plus a DexScreener chart modal.
+
 import React, { useState } from "react";
 import { Modal } from "antd";
 import { DownOutlined, RightOutlined } from "@ant-design/icons";
 
+// ─── Display helpers ──────────────────────────────────────────
 function formatNumber(num) {
   if (num === "N/A" || num === undefined) return "N/A";
   if (num >= 1_000_000_000) return `$${(num / 1_000_000_000).toFixed(1)}B`;
@@ -28,6 +33,7 @@ function RiskPanel({ riskData, token }) {
 
   if (!riskData) return null;
 
+  // Aggregate header status - worst severity across all indicators.
   const hasHighRisk = riskData.indicators.some(i => i.severity === "highRisk");
   const hasCaution = riskData.indicators.some(i => i.severity === "caution");
 
@@ -38,7 +44,7 @@ function RiskPanel({ riskData, token }) {
     statusText = "High-risk indicators detected";
   } else if (hasCaution) {
     statusClass = "caution";
-    statusText = "Caution — review indicators below";
+    statusText = "Caution - review indicators below";
   }
 
   return (

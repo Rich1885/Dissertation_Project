@@ -1,3 +1,6 @@
+// SentinelDEX backend - Express proxy for Moralis, CoinGecko and 0x
+// All API keys are read from .env so no secrets reach the client
+
 const express = require("express");
 const Moralis = require("moralis").default;
 const app = express();
@@ -8,18 +11,20 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
-// demo token  
+// Hardcoded demo token used to showcase the worst-case risk state in the UI
 const DEMO_TOKENS = {
   "0x0000000000000000000000000000000000000001": {
     address: "0x0000000000000000000000000000000000000001",
     name: "Demo Scam Token",
     symbol: "SCAM",
     risk: "highRisk",
-    summary: "Multiple high-risk indicators — honeypot detected",
+    summary: "Multiple high-risk indicators - honeypot detected",
     logo: "https://cdn-icons-png.flaticon.com/512/595/595067.png",
   },
 };
 
+//tokenPrice
+// Returns USD prices for two tokens and their ratio (used by Swap)
 app.get("/tokenPrice", async (req, res) => {
   const t0 = performance.now();
   try {
@@ -49,6 +54,8 @@ app.get("/tokenPrice", async (req, res) => {
   }
 });
 
+//tokenRisk 
+// Detailed heuristic scan for a single token. Calls Moralis metadata,Moralis price and CoinGecko in parallel
 app.get("/tokenRisk", async (req, res) => {
   const t0 = performance.now();
   try {
@@ -63,7 +70,7 @@ app.get("/tokenRisk", async (req, res) => {
           { name: "Token Age", detail: "3 days old", severity: "highRisk" },
           { name: "Holder Concentration", detail: "Top 10 hold 94%", severity: "highRisk" },
           { name: "Liquidity Lock", detail: "No liquidity lock found", severity: "highRisk" },
-          { name: "Tax / Honeypot Signals", detail: "Sell blocked — honeypot", severity: "highRisk" },
+          { name: "Tax / Honeypot Signals", detail: "Sell blocked - honeypot", severity: "highRisk" },
         ],
         tokenName: "Demo Scam Token",
         tokenSymbol: "SCAM",
@@ -72,6 +79,8 @@ app.get("/tokenRisk", async (req, res) => {
     }
 
     
+    // Parallelised external API calls Promise.all() halves total
+    // latency vs. sequential awaits (see report Section 4 / Appendix E).
     const tParallel = performance.now();
 
     const [metaResponse, price, cgData] = await Promise.all([
@@ -97,8 +106,10 @@ app.get("/tokenRisk", async (req, res) => {
 
     const parallelDuration = (performance.now() - tParallel).toFixed(1);
     const meta = metaResponse.raw[0];
-    // ── End parallel block ──────────────────────────────────────
+    // End parallel block
 
+    // Heuristic severity classifier
+    // Each indicator maps Moralis / CoinGecko fields to one of three severities: "noFlag" | "caution" | "highRisk"
     const tHeuristic = performance.now();
 
     const createdAt = meta.created_at ? new Date(meta.created_at) : null;
@@ -109,24 +120,31 @@ app.get("/tokenRisk", async (req, res) => {
     const verified = meta.verified_contract;
     const securityScore = meta.security_score || 0;
 
+    // Contract Ownership unverified contracts are treated as high risk verified contracts with a Moralis security score under 80 are caution
     let ownershipSeverity = "noFlag";
     let ownershipDetail = verified ? `Score: ${securityScore}/100` : "Unverified contract";
     if (!verified) ownershipSeverity = "highRisk";
     else if (securityScore < 80) { ownershipSeverity = "caution"; ownershipDetail = `Security score: ${securityScore}/100`; }
 
+    // Upgradeability -proxy detection is unavailable on the free tier,  so a low security score is used as a weak proxy signal.
     let upgradeSeverity = "noFlag";
     let upgradeDetail = "No proxy detected";
     if (securityScore > 0 && securityScore < 70) {
       upgradeSeverity = "caution";
-      upgradeDetail = "Low security score — review contract";
+      upgradeDetail = "Low security score - review contract";
     }
 
+    // Token Age < 7 days = highRisk (rug-pull window)
+    // Token Age< 30 days = caution (insufficient track record)
+    // Token Age < 730 days = caution (under 2 years)
     let ageSeverity = "noFlag";
     let ageDetail = ageDays !== null ? `${ageDays} days old` : "Unknown";
     if (ageDays !== null && ageDays < 7) ageSeverity = "highRisk";
-    else if (ageDays !== null && ageDays < 30) { ageSeverity = "caution"; ageDetail = `${ageDays} days old — very new`; }
-    else if (ageDays !== null && ageDays < 730) { ageSeverity = "caution"; ageDetail = `${ageDays} days old — under 2 years`; }
+    else if (ageDays !== null && ageDays < 30) { ageSeverity = "caution"; ageDetail = `${ageDays} days old - very new`; }
+    else if (ageDays !== null && ageDays < 730) { ageSeverity = "caution"; ageDetail = `${ageDays} days old - under 2 years`; }
 
+    // Liquidity Lock - approximated by the 24h volume / market cap ratio
+    // Very low ratio implies thin trading and harder exits
     const volume24h = cgData.market_data?.total_volume?.usd || 0;
     const marketCap = cgData.market_data?.market_cap?.usd || 0;
     let liquiditySeverity = "noFlag";
@@ -141,11 +159,12 @@ app.get("/tokenRisk", async (req, res) => {
       liquidityDetail = "No market data available";
     }
 
+    // Tax /Honeypot Signals - Moralis spam flag is the strongest signal,a very low security score is a secondary caution.
     const isSpam = meta.possible_spam;
     let taxSeverity = "noFlag";
     let taxDetail = "None detected";
     if (isSpam) { taxSeverity = "highRisk"; taxDetail = "Flagged as possible spam"; }
-    else if (securityScore > 0 && securityScore < 50) { taxSeverity = "caution"; taxDetail = "Low security score — potential risk"; }
+    else if (securityScore > 0 && securityScore < 50) { taxSeverity = "caution"; taxDetail = "Low security score - potential risk"; }
 
     const heuristicDuration = (performance.now() - tHeuristic).toFixed(1);
     const totalDuration = (performance.now() - t0).toFixed(1);
@@ -177,13 +196,16 @@ app.get("/tokenRisk", async (req, res) => {
   }
 });
 
+// tokenSummary
+// Compact risk summary for many tokens at once
+// Tokens dashboard to render the per-card risk badge
 app.get("/tokenSummary", async (req, res) => {
   try {
     const addressList = req.query.addresses.split(",");
 
     const settled = await Promise.allSettled(
       addressList.map(async (address) => {
-        // Return hardcoded demo data — never hits Moralis
+        // Return hardcoded demo data - never hits Moralis
         if (DEMO_TOKENS[address.toLowerCase()]) {
           return DEMO_TOKENS[address.toLowerCase()];
         }
@@ -217,7 +239,7 @@ app.get("/tokenSummary", async (req, res) => {
           summary = `Security score: ${securityScore}/100`;
         } else if (ageDays !== null && ageDays < 730) {
           risk = "caution";
-          summary = `Token ${ageDays} days old — under 2 years`;
+          summary = `Token ${ageDays} days old - under 2 years`;
         }
 
         return {
@@ -233,7 +255,7 @@ app.get("/tokenSummary", async (req, res) => {
 
     const results = settled.map((result, i) => {
       if (result.status === "fulfilled") return result.value;
-      console.warn(`tokenSummary: skipping ${addressList[i]} —`, result.reason?.message);
+      console.warn(`tokenSummary: skipping ${addressList[i]} -`, result.reason?.message);
       return {
         address: addressList[i],
         name: addressList[i].slice(0, 8) + "...",
@@ -251,7 +273,7 @@ app.get("/tokenSummary", async (req, res) => {
   }
 });
 
-// ─── /tokenLogos ──────────────────────────────────────────────────────────────
+// tokenLogos 
 app.get("/tokenLogos", async (req, res) => {
   try {
     const addressList = req.query.addresses.split(",");
@@ -286,6 +308,8 @@ app.get("/tokenLogos", async (req, res) => {
   }
 });
 
+//quote 
+// Indicative price from the 0x AllowanceHolder API 
 app.get("/quote", async (req, res) => {
   const t0 = performance.now();
   try {
@@ -303,6 +327,9 @@ app.get("/quote", async (req, res) => {
   }
 });
 
+// swap 
+// Executable quote from 0x - returns the calldata the wallet signs
+// API key is injected here so it never reaches the browser
 app.get("/swap", async (req, res) => {
   const t0 = performance.now();
   try {

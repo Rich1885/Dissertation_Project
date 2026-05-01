@@ -1,17 +1,19 @@
 # SentinelDEX
 
-A cross-chain DEX aggregator with integrated real-time heuristic token risk scanning, built on Base. BSc Computing dissertation project — UHI 2026.
+A cross-chain DEX aggregator with integrated real-time heuristic token risk scanning, built on Base. BSc Computing dissertation project - UHI 2026.
 
-## Prerequisites
-
-- [Node.js v18+](https://nodejs.org) — download and run the Windows Installer (.msi), all defaults
-- Git
 
 **Windows note:** After installing Node, close and reopen your terminal. If `npm` is still not recognised in VS Code's PowerShell, run this first:
 ```powershell
 $env:PATH += ";C:\Program Files\nodejs"
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
+
+## Live demo
+
+Deployed at: https://dissertation-project-mu.vercel.app
+
+The frontend is hosted on Vercel and the backend on Render, no local install required to evaluate the deployed version. To test an actual swap you need a Base-funded wallet, but token selection, the risk panel, and the tracked tokens dashboard all work with no wallet connected.
 
 ## Setup
 
@@ -31,7 +33,7 @@ npm install
 ```
 
 ### 3. Create the .env file
-In the `server/` folder, create a file called `.env` (no extension):
+In the `server/` folder, create a file called `.env` :
 ```
 MORALIS_KEY=your_moralis_api_key_here
 ZEROX_KEY=your_0x_api_key_here
@@ -45,14 +47,14 @@ Get your keys from:
 
 Open **two terminals**:
 
-**Terminal 1 — Backend:**
+**Terminal 1 - Backend:**
 ```bash
 cd server
 node index.js
 # Should print: Listening for API Calls
 ```
 
-**Terminal 2 — Frontend:**
+**Terminal 2 - Frontend:**
 ```bash
 cd client
 npm run dev
@@ -70,7 +72,7 @@ Dissertation_Project/
 │       ├── config/       # Reown AppKit + wagmi config
 │       └── tokens.json   # 24 tracked Base tokens
 └── server/          # Node.js/Express backend
-    └── index.js     # API proxy — Moralis, CoinGecko, 0x endpoints
+    └── index.js     # API proxy - Moralis, CoinGecko, 0x endpoints
 ```
 
 ## Tech Stack
@@ -81,7 +83,7 @@ Dissertation_Project/
 - **Market data:** CoinGecko API
 
 ## Notes
-- The `.env` file is gitignored — you must create it manually on each machine
-- The app runs on Base mainnet — real tokens, real transactions
+- The `.env` file is gitignored - you must create it manually on each machine
+- The app runs on Base mainnet - real tokens, real transactions
 - The SCAM token in the token list is a simulated demo token (hardcoded, never hits any API)
 - 0x applies a 0.15% on-chain swap fee on the Standard tier
